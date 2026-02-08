@@ -11,9 +11,9 @@ const Index = () => {
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const handleNavigateToModule = (moduleId: string) => {
+  const handleNavigateToModule = (moduleId: string | null) => {
     setActiveModule(moduleId);
-    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (moduleId) tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
