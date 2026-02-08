@@ -40,7 +40,19 @@ function formatDaysUntil(days: number): string {
   return `${days} days`;
 }
 
-function DeadlineItem({ deadline, index }: { deadline: Deadline; index: number }) {
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) +
+    ", " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
+interface DeadlineItemProps {
+  deadline: Deadline;
+  index: number;
+  onClickDeadline?: (moduleId: string) => void;
+}
+
+function DeadlineItem({ deadline, index, onClickDeadline }: DeadlineItemProps) {
   const Icon = typeIcons[deadline.type];
   const styles = urgencyStyles[deadline.urgency];
   const daysUntil = getDaysUntil(deadline.dueDate);
@@ -48,8 +60,9 @@ function DeadlineItem({ deadline, index }: { deadline: Deadline; index: number }
 
   return (
     <div 
-      className={`flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 transition-all hover:bg-card/80 opacity-0 animate-fade-up ${styles.glow}`}
+      className={`flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 transition-all hover:bg-card/80 hover:border-primary/30 cursor-pointer opacity-0 animate-fade-up ${styles.glow}`}
       style={{ animationDelay: `${0.1 + index * 0.05}s` }}
+      onClick={() => onClickDeadline?.(deadline.moduleId)}
     >
       <div className={styles.dot} />
       
@@ -77,17 +90,18 @@ function DeadlineItem({ deadline, index }: { deadline: Deadline; index: number }
           {daysText}
         </p>
         <p className="text-xs text-muted-foreground">
-          {new Date(deadline.dueDate).toLocaleDateString('en-GB', { 
-            day: 'numeric', 
-            month: 'short' 
-          })}
+          {formatDateTime(deadline.dueDate)}
         </p>
       </div>
     </div>
   );
 }
 
-export function DeadlinesTracker() {
+interface DeadlinesTrackerProps {
+  onNavigateToModule?: (moduleId: string) => void;
+}
+
+export function DeadlinesTracker({ onNavigateToModule }: DeadlinesTrackerProps) {
   const criticalCount = upcomingDeadlines.filter(d => d.urgency === 'critical').length;
 
   return (
@@ -114,7 +128,7 @@ export function DeadlinesTracker() {
 
       <div className="space-y-3">
         {upcomingDeadlines.slice(0, 5).map((deadline, index) => (
-          <DeadlineItem key={deadline.id} deadline={deadline} index={index} />
+          <DeadlineItem key={deadline.id} deadline={deadline} index={index} onClickDeadline={onNavigateToModule} />
         ))}
       </div>
 
