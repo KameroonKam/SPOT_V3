@@ -100,7 +100,7 @@ export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: Mo
   const activeView = externalActiveView ?? internalView;
   const setActiveView = (v: ViewMode) => {
     setInternalView(v);
-    if (onNavigateToModule && v !== "all") onNavigateToModule(v);
+    if (onNavigateToModule) onNavigateToModule(v === "all" ? null as any : v);
   };
 
   const totalCredits = modules.reduce((sum, m) => sum + m.credits, 0);
@@ -295,9 +295,8 @@ export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: Mo
                     </TableCell>
                     <TableCell>
                       {stats.unitMark !== null && classification ? (
-                        <span className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-sm font-semibold", classification.className)}>
+                        <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-sm font-semibold", classification.className)}>
                           {stats.unitMark}
-                          <span className="text-[10px] font-normal opacity-80">{classification.label}</span>
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -317,9 +316,8 @@ export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: Mo
                 <TableCell colSpan={3}></TableCell>
                 <TableCell>
                   {weightedAverage > 0 && (
-                    <span className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-sm font-bold", getGradeClassification(weightedAverage).className)}>
+                    <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold", getGradeClassification(weightedAverage).className)}>
                       {weightedAverage}
-                      <span className="text-[10px] font-normal opacity-80">{getGradeClassification(weightedAverage).label}</span>
                     </span>
                   )}
                 </TableCell>
@@ -362,9 +360,8 @@ export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: Mo
                       </TableCell>
                       <TableCell>
                         {a.grade !== null && classification ? (
-                          <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-sm font-semibold", classification.className)}>
+                          <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-sm font-semibold", classification.className)}>
                             {a.grade}
-                            <span className="text-[10px] font-normal opacity-80">{classification.label}</span>
                           </span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -423,9 +420,8 @@ export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: Mo
                   <TableCell />
                   <TableCell>
                     {selectedModule.currentGrade !== null ? (
-                      <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-sm font-bold", getGradeClassification(selectedModule.currentGrade).className)}>
+                      <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-sm font-bold", getGradeClassification(selectedModule.currentGrade).className)}>
                         {selectedModule.currentGrade}
-                        <span className="text-[10px] font-normal opacity-80">{getGradeClassification(selectedModule.currentGrade).label}</span>
                       </span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
