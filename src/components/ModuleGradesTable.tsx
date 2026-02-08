@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Info, ChevronRight } from "lucide-react";
-import { modules } from "@/data/mockData";
+import { Info, ChevronRight, GitBranch, MessageSquare, TrendingUp } from "lucide-react";
+import { modules, modulePerformanceData } from "@/data/mockData";
 import {
   Table,
   TableBody,
@@ -15,10 +15,18 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip } from "recharts";
 
-type ViewMode = "all" | string; // "all" or module id
+type ViewMode = "all" | string;
 type FilterMode = "all" | "formative" | "summative";
 
 function calculateModuleStats(module: typeof modules[0]) {
@@ -48,15 +56,52 @@ function calculateModuleStats(module: typeof modules[0]) {
   };
 }
 
+function getGradeClassification(grade: number): { label: string; className: string } {
+  if (grade >= 70) return { label: "1st", className: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" };
+  if (grade >= 60) return { label: "2:1", className: "bg-blue-500/20 text-blue-400 border border-blue-500/30" };
+  if (grade >= 50) return { label: "2:2", className: "bg-amber-500/20 text-amber-400 border border-amber-500/30" };
+  if (grade >= 40) return { label: "3rd", className: "bg-orange-500/20 text-orange-400 border border-orange-500/30" };
+  return { label: "Fail", className: "bg-destructive/20 text-destructive border border-destructive/30" };
+}
+
+function formatDateTime(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) +
+    ", " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
 const statusStyles: Record<string, string> = {
   completed: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   "in-progress": "bg-amber-500/15 text-amber-400 border-amber-500/30",
   upcoming: "bg-blue-500/15 text-blue-400 border-blue-500/30",
 };
 
-export function ModuleGradesTable() {
-  const [activeView, setActiveView] = useState<ViewMode>("all");
+const gradeLegend = [
+  { label: "1st (≥70)", className: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
+  { label: "2:1 (60–69)", className: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
+  { label: "2:2 (50–59)", className: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
+  { label: "3rd (40–49)", className: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+  { label: "Fail (<40)", className: "bg-destructive/20 text-destructive border-destructive/30" },
+];
+
+interface ModuleGradesTableProps {
+  onNavigateToModule?: (moduleId: string) => void;
+  externalActiveView?: string | null;
+}
+
+export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: ModuleGradesTableProps) {
+  const [internalView, setInternalView] = useState<ViewMode>("all");
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [feedbackModal, setFeedbackModal] = useState<{ name: string; feedback: string } | null>(null);
+  const [showTrend, setShowTrend] = useState<string | null>(null);
+
+  // Allow external navigation to override internal state
+  const activeView = externalActiveView ?? internalView;
+  const setActiveView = (v: ViewMode) => {
+    setInternalView(v);
+    if (onNavigateToModule && v !== "all") onNavigateToModule(v);
+  };
 
   const totalCredits = modules.reduce((sum, m) => sum + m.credits, 0);
   const modulesWithGrades = modules.filter(m => m.currentGrade !== null);
@@ -77,6 +122,8 @@ export function ModuleGradesTable() {
       })
     : [];
 
+  const trendData = showTrend ? modulePerformanceData[showTrend] : null;
+
   return (
     <div className="glass-card p-6 opacity-0 animate-fade-up stagger-3">
       <div className="flex items-center justify-between mb-4">
@@ -93,7 +140,7 @@ export function ModuleGradesTable() {
       {/* Module Navigation Bar */}
       <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-thin">
         <button
-          onClick={() => { setActiveView("all"); setFilter("all"); }}
+          onClick={() => { setActiveView("all"); setFilter("all"); setShowTrend(null); }}
           className={cn(
             "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 whitespace-nowrap",
             activeView === "all"
@@ -106,7 +153,7 @@ export function ModuleGradesTable() {
         {modules.map((m) => (
           <button
             key={m.id}
-            onClick={() => { setActiveView(m.id); setFilter("all"); }}
+            onClick={() => { setActiveView(m.id); setFilter("all"); setShowTrend(null); }}
             className={cn(
               "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 whitespace-nowrap",
               activeView === m.id
@@ -119,29 +166,73 @@ export function ModuleGradesTable() {
         ))}
       </div>
 
-      {/* Filter toggle for single module view */}
+      {/* Filter toggle + trend selector for single module view */}
       {selectedModule && (
-        <div className="flex items-center gap-1.5 mb-4 animate-fade-in">
-          {(["all", "summative", "formative"] as FilterMode[]).map((f) => (
+        <div className="flex items-center justify-between mb-4 animate-fade-in">
+          <div className="flex items-center gap-1.5">
+            {(["all", "summative", "formative"] as FilterMode[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "px-3 py-1 text-xs font-medium rounded-md border transition-all duration-200 capitalize",
+                  filter === f
+                    ? "border-primary/50 bg-primary/10 text-primary"
+                    : "border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                )}
+              >
+                {f === "all" ? "All" : f}
+              </button>
+            ))}
+          </div>
+          {modulePerformanceData[selectedModule.id] && (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => setShowTrend(showTrend === selectedModule.id ? null : selectedModule.id)}
               className={cn(
-                "px-3 py-1 text-xs font-medium rounded-md border transition-all duration-200 capitalize",
-                filter === f
+                "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md border transition-all duration-200",
+                showTrend === selectedModule.id
                   ? "border-primary/50 bg-primary/10 text-primary"
                   : "border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground"
               )}
             >
-              {f === "all" ? "All" : f}
+              <TrendingUp className="w-3.5 h-3.5" />
+              Trend
             </button>
-          ))}
+          )}
+        </div>
+      )}
+
+      {/* Trend Chart */}
+      {showTrend && trendData && (
+        <div className="mb-4 p-4 rounded-lg bg-secondary/30 border border-border/50 animate-fade-in">
+          <p className="text-xs text-muted-foreground mb-3">Grade Trend Over Time</p>
+          <div className="h-32">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(250 85% 65%)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(250 85% 65%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(215 20% 55%)', fontSize: 11 }} />
+                <YAxis domain={[40, 100]} axisLine={false} tickLine={false} tick={{ fill: 'hsl(215 20% 55%)', fontSize: 11 }} />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(230 25% 12%)',
+                    border: '1px solid hsl(230 25% 18%)',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Area type="monotone" dataKey="grade" stroke="hsl(250 85% 65%)" strokeWidth={2} fillOpacity={1} fill="url(#trendGradient)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
       <div className="rounded-lg border border-border/50 overflow-hidden">
         {activeView === "all" ? (
-          /* All Modules Overview Table */
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
@@ -167,15 +258,31 @@ export function ModuleGradesTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {modules.map((module) => {
+              {modules.map((module, index) => {
                 const stats = calculateModuleStats(module);
+                const classification = stats.unitMark !== null ? getGradeClassification(stats.unitMark) : null;
                 return (
                   <TableRow
                     key={module.id}
-                    className="border-border/50 cursor-pointer hover:bg-secondary/40 transition-colors duration-150"
+                    className={cn(
+                      "border-border/50 cursor-pointer hover:bg-secondary/40 transition-colors duration-150",
+                      index % 2 === 1 && "bg-secondary/15"
+                    )}
                     onClick={() => setActiveView(module.id)}
                   >
-                    <TableCell className="font-medium text-foreground">{module.code}</TableCell>
+                    <TableCell className="font-medium text-foreground">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="underline decoration-dotted decoration-muted-foreground/40 underline-offset-4 cursor-help">
+                            {module.code}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p className="font-medium">{module.name}</p>
+                          <p className="text-xs text-muted-foreground">Semester {module.semester} • {module.credits} credits</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{module.credits}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {stats.cwWeight}/{stats.examWeight}
@@ -187,8 +294,11 @@ export function ModuleGradesTable() {
                       {stats.examPercentage > 0 ? stats.examPercentage : 0}
                     </TableCell>
                     <TableCell>
-                      {stats.unitMark !== null ? (
-                        <span className="font-semibold gradient-text">{stats.unitMark}</span>
+                      {stats.unitMark !== null && classification ? (
+                        <span className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-sm font-semibold", classification.className)}>
+                          {stats.unitMark}
+                          <span className="text-[10px] font-normal opacity-80">{classification.label}</span>
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -204,20 +314,16 @@ export function ModuleGradesTable() {
               <TableRow className="hover:bg-transparent">
                 <TableCell className="font-semibold text-foreground">Total</TableCell>
                 <TableCell className="font-bold text-foreground">{totalCredits}</TableCell>
-                <TableCell colSpan={4}></TableCell>
+                <TableCell colSpan={3}></TableCell>
                 <TableCell>
-                  <span className="flex items-center gap-1.5">
-                    <span className="font-bold gradient-text">{weightedAverage}</span>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="w-3.5 h-3.5 text-info" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Credit-weighted average of all modules with grades</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </span>
+                  {weightedAverage > 0 && (
+                    <span className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-sm font-bold", getGradeClassification(weightedAverage).className)}>
+                      {weightedAverage}
+                      <span className="text-[10px] font-normal opacity-80">{getGradeClassification(weightedAverage).label}</span>
+                    </span>
+                  )}
                 </TableCell>
+                <TableCell />
               </TableRow>
             </TableFooter>
           </Table>
@@ -232,44 +338,74 @@ export function ModuleGradesTable() {
                 <TableHead className="text-muted-foreground font-medium">Deadline</TableHead>
                 <TableHead className="text-muted-foreground font-medium">Grade</TableHead>
                 <TableHead className="text-muted-foreground font-medium">Status</TableHead>
+                <TableHead className="text-muted-foreground font-medium">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAssessments.length > 0 ? (
-                filteredAssessments.map((a) => (
-                  <TableRow key={a.id} className="border-border/50 animate-fade-in">
-                    <TableCell className="font-medium text-foreground">
-                      {a.name}
-                      {a.isFormative && (
-                        <Badge variant="outline" className="ml-2 text-[10px] py-0 px-1.5 border-muted-foreground/30 text-muted-foreground">
-                          Formative
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground capitalize">{a.type}</TableCell>
-                    <TableCell className="text-muted-foreground">{a.weight}%</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {a.dueDate
-                        ? new Date(a.dueDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {a.grade !== null ? (
-                        <span className="font-semibold gradient-text">{a.grade}</span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <span className={cn("text-xs px-2 py-0.5 rounded-full border capitalize", statusStyles[a.status])}>
-                        {a.status}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredAssessments.map((a, index) => {
+                  const classification = a.grade !== null ? getGradeClassification(a.grade) : null;
+                  return (
+                    <TableRow key={a.id} className={cn("border-border/50 animate-fade-in", index % 2 === 1 && "bg-secondary/15")}>
+                      <TableCell className="font-medium text-foreground">
+                        {a.name}
+                        {a.isFormative && (
+                          <Badge variant="outline" className="ml-2 text-[10px] py-0 px-1.5 border-muted-foreground/30 text-muted-foreground">
+                            Formative
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground capitalize">{a.type}</TableCell>
+                      <TableCell className="text-muted-foreground">{a.weight}%</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {formatDateTime(a.dueDate)}
+                      </TableCell>
+                      <TableCell>
+                        {a.grade !== null && classification ? (
+                          <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-sm font-semibold", classification.className)}>
+                            {a.grade}
+                            <span className="text-[10px] font-normal opacity-80">{classification.label}</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className={cn("text-xs px-2 py-0.5 rounded-full border capitalize", statusStyles[a.status])}>
+                          {a.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {a.gitlabUrl && (
+                            <a
+                              href={a.gitlabUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-orange-500/15 text-orange-400 border border-orange-500/30 hover:bg-orange-500/25 transition-colors"
+                            >
+                              <GitBranch className="w-3 h-3" />
+                              GitLab
+                            </a>
+                          )}
+                          {a.feedback && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setFeedbackModal({ name: a.name, feedback: a.feedback! }); }}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 transition-colors"
+                            >
+                              <MessageSquare className="w-3 h-3" />
+                              Feedback
+                            </button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     No {filter} assessments found.
                   </TableCell>
                 </TableRow>
@@ -284,20 +420,54 @@ export function ModuleGradesTable() {
                   <TableCell className="text-muted-foreground">
                     {filteredAssessments.reduce((s, a) => s + a.weight, 0)}%
                   </TableCell>
-                  <TableCell colSpan={2}>
+                  <TableCell />
+                  <TableCell>
                     {selectedModule.currentGrade !== null ? (
-                      <span className="font-bold gradient-text">{selectedModule.currentGrade}</span>
+                      <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-sm font-bold", getGradeClassification(selectedModule.currentGrade).className)}>
+                        {selectedModule.currentGrade}
+                        <span className="text-[10px] font-normal opacity-80">{getGradeClassification(selectedModule.currentGrade).label}</span>
+                      </span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell />
+                  <TableCell colSpan={2} />
                 </TableRow>
               </TableFooter>
             )}
           </Table>
         )}
       </div>
+
+      {/* Grade Legend */}
+      <div className="flex items-center gap-3 mt-3 flex-wrap">
+        <span className="text-[11px] text-muted-foreground font-medium">Grade Key:</span>
+        {gradeLegend.map((item) => (
+          <span key={item.label} className={cn("text-[11px] px-2 py-0.5 rounded-md border", item.className)}>
+            {item.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Feedback Modal */}
+      <Dialog open={!!feedbackModal} onOpenChange={(open) => !open && setFeedbackModal(null)}>
+        <DialogContent className="glass-card border-border/50 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              Instructor Feedback
+            </DialogTitle>
+            <DialogDescription>
+              {feedbackModal?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 p-4 rounded-lg bg-secondary/30 border border-border/50">
+            <p className="text-sm leading-relaxed text-foreground/90">
+              {feedbackModal?.feedback}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

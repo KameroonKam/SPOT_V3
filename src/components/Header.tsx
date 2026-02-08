@@ -1,7 +1,16 @@
-import { GraduationCap, RefreshCw, ChevronDown } from "lucide-react";
-import { studentProfile } from "@/data/mockData";
+import { useState } from "react";
+import { GraduationCap, RefreshCw, ChevronDown, Check } from "lucide-react";
+import { studentProfile, academicYears } from "@/data/mockData";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Header() {
+  const [selectedYear, setSelectedYear] = useState(studentProfile.academicYear);
+
   return (
     <header className="glass-card border-b border-border/50 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -21,12 +30,28 @@ export function Header() {
 
           {/* Student Info */}
           <div className="flex items-center gap-6">
-            {/* Academic Year Selector */}
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-sm">
-              <span className="text-muted-foreground">Academic Year:</span>
-              <span className="font-medium">{studentProfile.academicYear}</span>
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            </button>
+            {/* Academic Year Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-sm">
+                  <span className="text-muted-foreground">Academic Year:</span>
+                  <span className="font-medium">{selectedYear}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-card border-border/50">
+                {academicYears.map((year) => (
+                  <DropdownMenuItem
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className="flex items-center justify-between gap-4 cursor-pointer"
+                  >
+                    <span>{year}</span>
+                    {selectedYear === year && <Check className="w-4 h-4 text-primary" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Sync Status */}
             <div className="flex items-center gap-2 text-sm">
