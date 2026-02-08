@@ -3,6 +3,7 @@ import { PerformanceOverview } from "@/components/PerformanceOverview";
 import { ModuleCard } from "@/components/ModuleCard";
 import { DeadlinesTracker } from "@/components/DeadlinesTracker";
 import { AssessmentBreakdown } from "@/components/AssessmentBreakdown";
+import { ModuleGradesTable } from "@/components/ModuleGradesTable";
 import { modules } from "@/data/mockData";
 
 const Index = () => {
@@ -66,6 +67,9 @@ const Index = () => {
                   />
                 ))}
               </div>
+
+              {/* Grades Table */}
+              <ModuleGradesTable />
             </div>
           </div>
         </main>
