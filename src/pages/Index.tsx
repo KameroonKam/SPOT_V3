@@ -10,7 +10,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Background Gradient */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none"
         style={{
           background: `
@@ -20,11 +20,13 @@ const Index = () => {
           `,
         }}
       />
-      
+
       <div className="relative z-10">
         <Header />
-        
+
         <main className="container mx-auto px-6 py-8 space-y-8">
+          {/* Grades Table */}
+          <ModuleGradesTable />
           {/* Performance Overview */}
           <PerformanceOverview />
 
@@ -60,16 +62,9 @@ const Index = () => {
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {modules.map((module, index) => (
-                  <ModuleCard 
-                    key={module.id} 
-                    module={module} 
-                    delay={`stagger-${Math.min(index + 2, 5)}`}
-                  />
+                  <ModuleCard key={module.id} module={module} delay={`stagger-${Math.min(index + 2, 5)}`} />
                 ))}
               </div>
-
-              {/* Grades Table */}
-              <ModuleGradesTable />
             </div>
           </div>
         </main>
