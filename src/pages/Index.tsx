@@ -33,7 +33,7 @@ const Index = () => {
       <div className="relative z-10">
         <Header />
 
-        <main className="container mx-auto px-6 py-8 space-y-8">
+        <main className="max-w-5xl mx-auto px-6 lg:px-8 py-8 space-y-8">
           {/* Grades Table */}
           <div ref={tableRef}>
             <ModuleGradesTable
@@ -83,7 +83,7 @@ const Index = () => {
 
         {/* Footer */}
         <footer className="border-t border-border/50 mt-12">
-          <div className="container mx-auto px-6 py-6">
+          <div className="max-w-5xl mx-auto px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <p>SPOT V3 • Student Performance & Organisation Tool</p>
               <p>Using synthetic data only • Privacy-first design</p>
