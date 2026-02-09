@@ -12,6 +12,7 @@ The project focuses on clearer deadline tracking, better grade visibility, and m
 ## Demo
 
 
+https://github.com/user-attachments/assets/babe9833-ee88-42c1-a663-fd290201b490
 
 
 ---
