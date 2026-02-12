@@ -7,8 +7,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger } from
+"@/components/ui/dropdown-menu";
 
 export function Header() {
   const [selectedYear, setSelectedYear] = useState(studentProfile.academicYear);
@@ -21,7 +21,7 @@ export function Header() {
           {/* Logo & Branding */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <img src={spotLogo} alt="SPOT logo" className="w-10 h-10 rounded-xl" />
+              <img alt="SPOT logo" className="w-10 h-10 rounded-xl" src="/lovable-uploads/4f875ebc-6cfa-4bd2-a057-1c3df9324283.svg" />
               <div>
                 <h1 className="text-xl font-semibold tracking-tight">SPOT</h1>
                 <p className="text-xs text-muted-foreground">Student Performance Tool</p>
@@ -41,16 +41,16 @@ export function Header() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-card border-border/50">
-                {academicYears.map((year) => (
-                  <DropdownMenuItem
-                    key={year}
-                    onClick={() => setSelectedYear(year)}
-                    className="flex items-center justify-between gap-4 cursor-pointer"
-                  >
+                {academicYears.map((year) =>
+                <DropdownMenuItem
+                  key={year}
+                  onClick={() => setSelectedYear(year)}
+                  className="flex items-center justify-between gap-4 cursor-pointer">
+
                     <span>{year}</span>
                     {selectedYear === year && <Check className="w-4 h-4 text-primary" />}
                   </DropdownMenuItem>
-                ))}
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -58,13 +58,13 @@ export function Header() {
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-muted-foreground" />
-              ) : (
-                <Moon className="w-4 h-4 text-muted-foreground" />
-              )}
+              aria-label="Toggle theme">
+
+              {theme === "dark" ?
+              <Sun className="w-4 h-4 text-muted-foreground" /> :
+
+              <Moon className="w-4 h-4 text-muted-foreground" />
+              }
             </button>
 
             {/* Sync Status */}
@@ -85,12 +85,12 @@ export function Header() {
                 </p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/50 to-accent/50 flex items-center justify-center text-sm font-medium">
-                {studentProfile.name.split(' ').map(n => n[0]).join('')}
+                {studentProfile.name.split(' ').map((n) => n[0]).join('')}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>);
+
 }
