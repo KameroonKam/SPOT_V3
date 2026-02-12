@@ -1,6 +1,5 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { modules } from "@/data/mockData";
-import { FileText, BookOpen, Presentation, FlaskConical } from "lucide-react";
+import { FileText, BookOpen, Presentation, FlaskConical, CheckCircle2, Clock, CalendarClock } from "lucide-react";
 
 const typeIcons = {
   coursework: FileText,
@@ -9,7 +8,7 @@ const typeIcons = {
   lab: FlaskConical,
 };
 
-const typeColors = {
+const typeColors: Record<string, string> = {
   coursework: "hsl(250 85% 65%)",
   exam: "hsl(200 90% 55%)",
   presentation: "hsl(160 84% 39%)",
@@ -18,131 +17,83 @@ const typeColors = {
 
 export function AssessmentBreakdown() {
   const allAssessments = modules.flatMap(m => m.assessments);
-  
-  const typeBreakdown = Object.entries(
-    allAssessments.reduce((acc, a) => {
-      acc[a.type] = (acc[a.type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>)
-  ).map(([type, count]) => ({
-    type,
-    count,
-    color: typeColors[type as keyof typeof typeColors],
-  }));
 
-  const statusBreakdown = {
-    completed: allAssessments.filter(a => a.status === 'completed').length,
-    inProgress: allAssessments.filter(a => a.status === 'in-progress').length,
-    upcoming: allAssessments.filter(a => a.status === 'upcoming').length,
-  };
+  const typeCounts = allAssessments.reduce((acc, a) => {
+    acc[a.type] = (acc[a.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const completed = allAssessments.filter(a => a.status === 'completed').length;
+  const inProgress = allAssessments.filter(a => a.status === 'in-progress').length;
+  const upcoming = allAssessments.filter(a => a.status === 'upcoming').length;
+  const total = allAssessments.length;
 
   const formativeCount = allAssessments.filter(a => a.isFormative).length;
-  const summativeCount = allAssessments.length - formativeCount;
+  const summativeCount = total - formativeCount;
 
   return (
     <section className="glass-card p-6 opacity-0 animate-fade-up stagger-3">
       <div className="mb-5">
-        <h2 className="text-lg font-semibold">Assessment Breakdown</h2>
-        <p className="text-sm text-muted-foreground">Understanding your grading structure</p>
+        <h2 className="text-lg font-semibold">Assessment Overview</h2>
+        <p className="text-sm text-muted-foreground">{total} assessments across {modules.length} modules</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Type Distribution */}
-        <div>
-          <h3 className="text-sm font-medium mb-4">By Type</h3>
-          <div className="flex items-center gap-6">
-            <div className="w-32 h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={typeBreakdown}
-                    dataKey="count"
-                    nameKey="type"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={30}
-                    outerRadius={50}
-                    strokeWidth={0}
-                  >
-                    {typeBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(230 25% 12%)',
-                      border: '1px solid hsl(230 25% 18%)',
-                      borderRadius: '8px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-2">
-              {typeBreakdown.map(({ type, count, color }) => {
-                const Icon = typeIcons[type as keyof typeof typeIcons];
-                return (
-                  <div key={type} className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: color }}
-                    />
-                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="text-sm capitalize">{type}</span>
-                    <span className="text-sm text-muted-foreground">({count})</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      {/* Progress bar */}
+      <div className="mb-5">
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+          <span>{completed} of {total} completed</span>
+          <span>{Math.round((completed / total) * 100)}%</span>
         </div>
+        <div className="h-2 rounded-full bg-muted overflow-hidden flex">
+          <div
+            className="h-full bg-[hsl(var(--success))] transition-all duration-500"
+            style={{ width: `${(completed / total) * 100}%` }}
+          />
+          <div
+            className="h-full bg-[hsl(var(--warning))] transition-all duration-500"
+            style={{ width: `${(inProgress / total) * 100}%` }}
+          />
+        </div>
+        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <CheckCircle2 className="w-3 h-3 text-[hsl(var(--success))]" /> {completed} Done
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="w-3 h-3 text-[hsl(var(--warning))]" /> {inProgress} Active
+          </span>
+          <span className="flex items-center gap-1.5">
+            <CalendarClock className="w-3 h-3" /> {upcoming} Upcoming
+          </span>
+        </div>
+      </div>
 
-        {/* Status & Category */}
-        <div className="space-y-6">
-          {/* Status */}
-          <div>
-            <h3 className="text-sm font-medium mb-3">Status</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-success" />
-                  <span className="text-sm">Completed</span>
-                </div>
-                <span className="text-sm font-medium">{statusBreakdown.completed}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-warning" />
-                  <span className="text-sm">In Progress</span>
-                </div>
-                <span className="text-sm font-medium">{statusBreakdown.inProgress}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-                  <span className="text-sm">Upcoming</span>
-                </div>
-                <span className="text-sm font-medium">{statusBreakdown.upcoming}</span>
-              </div>
+      {/* Type breakdown - inline */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {Object.entries(typeCounts).map(([type, count]) => {
+          const Icon = typeIcons[type as keyof typeof typeIcons];
+          return (
+            <div
+              key={type}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary/50 text-sm"
+            >
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: typeColors[type] }} />
+              <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="capitalize">{type}</span>
+              <span className="text-muted-foreground">({count})</span>
             </div>
-          </div>
+          );
+        })}
+      </div>
 
-          {/* Formative vs Summative */}
-          <div>
-            <h3 className="text-sm font-medium mb-3">Category</h3>
-            <div className="flex gap-4">
-              <div className="flex-1 p-3 rounded-lg bg-secondary/50 text-center">
-                <p className="text-xl font-bold">{summativeCount}</p>
-                <p className="text-xs text-muted-foreground">Summative</p>
-                <p className="text-[10px] text-muted-foreground/70">Counts toward grade</p>
-              </div>
-              <div className="flex-1 p-3 rounded-lg bg-info/10 border border-info/20 text-center">
-                <p className="text-xl font-bold text-info">{formativeCount}</p>
-                <p className="text-xs text-info">Formative</p>
-                <p className="text-[10px] text-muted-foreground/70">Practice only</p>
-              </div>
-            </div>
-          </div>
+      {/* Formative vs Summative */}
+      <div className="flex gap-3">
+        <div className="flex-1 p-3 rounded-lg bg-secondary/50 text-center">
+          <p className="text-lg font-bold">{summativeCount}</p>
+          <p className="text-xs text-muted-foreground">Summative</p>
+        </div>
+        <div className="flex-1 p-3 rounded-lg bg-[hsl(var(--info)/0.1)] border border-[hsl(var(--info)/0.2)] text-center">
+          <p className="text-lg font-bold text-[hsl(var(--info))]">{formativeCount}</p>
+          <p className="text-xs text-[hsl(var(--info))]">Formative</p>
         </div>
       </div>
     </section>
