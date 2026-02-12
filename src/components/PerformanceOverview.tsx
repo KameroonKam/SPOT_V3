@@ -71,8 +71,8 @@ function ProgressRing({ percentage, size = 120 }: { percentage: number; size?: n
         />
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="hsl(250 85% 65%)" />
-            <stop offset="100%" stopColor="hsl(200 90% 55%)" />
+            <stop offset="0%" stopColor="hsl(var(--primary))" />
+            <stop offset="100%" stopColor="hsl(var(--accent))" />
           </linearGradient>
         </defs>
       </svg>
@@ -165,35 +165,35 @@ export function PerformanceOverview() {
               <AreaChart data={performanceData}>
                 <defs>
                   <linearGradient id="colorAverage" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(250 85% 65%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(250 85% 65%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis 
                   dataKey="month" 
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: 'hsl(215 20% 55%)', fontSize: 12 }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                 />
                 <YAxis 
                   domain={[50, 80]}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: 'hsl(215 20% 55%)', fontSize: 12 }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'hsl(230 25% 12%)',
-                    border: '1px solid hsl(230 25% 18%)',
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
-                  labelStyle={{ color: 'hsl(210 40% 98%)' }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
                 />
                 <Area
                   type="monotone"
                   dataKey="target"
-                  stroke="hsl(200 90% 55%)"
+                  stroke="hsl(var(--accent))"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   fill="transparent"
@@ -201,7 +201,7 @@ export function PerformanceOverview() {
                 <Area
                   type="monotone"
                   dataKey="average"
-                  stroke="hsl(250 85% 65%)"
+                  stroke="hsl(var(--primary))"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorAverage)"

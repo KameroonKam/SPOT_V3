@@ -60,6 +60,60 @@
     --sidebar-border: 230 25% 18%;
     --sidebar-ring: 250 85% 65%;
   }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 270 10% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 270 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 10% 15%;
+
+    --primary: 275 100% 30%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 8% 93%;
+    --secondary-foreground: 270 10% 25%;
+
+    --muted: 270 8% 93%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 45 100% 60%;
+    --accent-foreground: 270 10% 15%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 8% 88%;
+    --input: 270 8% 88%;
+    --ring: 275 100% 30%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(275 100% 30%) 0%, hsl(275 80% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(270 8% 97%) 100%);
+    --gradient-glow: radial-gradient(ellipse at top, hsl(275 100% 30% / 0.06) 0%, transparent 50%);
+    --gradient-accent: linear-gradient(135deg, hsl(275 100% 30%) 0%, hsl(275 80% 45%) 100%);
+
+    /* Status colors */
+    --success: 160 84% 30%;
+    --warning: 38 92% 44%;
+    --info: 275 100% 30%;
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-glow: 0 0 40px -10px hsl(275 100% 30% / 0.08);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 270 10% 15%;
+    --sidebar-primary: 275 100% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 8% 93%;
+    --sidebar-accent-foreground: 270 10% 25%;
+    --sidebar-border: 270 8% 88%;
+    --sidebar-ring: 275 100% 30%;
+  }
 }
 
 @layer base {
@@ -76,12 +130,17 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-white/5 rounded-xl;
+    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl;
+    box-shadow: var(--shadow-card);
+  }
+
+  .light .glass-card {
+    @apply bg-card border-border/30;
     box-shadow: var(--shadow-card);
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300 hover:border-white/10 hover:bg-card/90;
+    @apply glass-card transition-all duration-300 hover:border-border hover:shadow-md;
   }
 
   .gradient-text {

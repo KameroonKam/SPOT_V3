@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { RefreshCw, ChevronDown, Check } from "lucide-react";
+import { RefreshCw, ChevronDown, Check, Sun, Moon } from "lucide-react";
 import { studentProfile, academicYears } from "@/data/mockData";
 import spotLogo from "@/assets/spot-logo.svg";
+import { useTheme } from "@/components/ThemeProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
 
 export function Header() {
   const [selectedYear, setSelectedYear] = useState(studentProfile.academicYear);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="glass-card border-b border-border/50 sticky top-0 z-50">
@@ -51,6 +53,19 @@ export function Header() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <Moon className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
 
             {/* Sync Status */}
             <div className="flex items-center gap-2 text-sm">
