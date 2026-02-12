@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { GraduationCap, RefreshCw, ChevronDown, Check } from "lucide-react";
+import { RefreshCw, ChevronDown, Check } from "lucide-react";
 import { studentProfile, academicYears } from "@/data/mockData";
+import spotLogo from "@/assets/spot-logo.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +19,7 @@ export function Header() {
           {/* Logo & Branding */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img src={spotLogo} alt="SPOT logo" className="w-10 h-10 rounded-xl" />
               <div>
                 <h1 className="text-xl font-semibold tracking-tight">SPOT</h1>
                 <p className="text-xs text-muted-foreground">Student Performance Tool</p>
