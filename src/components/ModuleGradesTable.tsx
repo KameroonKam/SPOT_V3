@@ -57,10 +57,10 @@ function calculateModuleStats(module: typeof modules[0]) {
 }
 
 function getGradeClassification(grade: number): { label: string; className: string } {
-  if (grade >= 70) return { label: "1st", className: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" };
-  if (grade >= 60) return { label: "2:1", className: "bg-blue-500/20 text-blue-400 border border-blue-500/30" };
-  if (grade >= 50) return { label: "2:2", className: "bg-amber-500/20 text-amber-400 border border-amber-500/30" };
-  if (grade >= 40) return { label: "3rd", className: "bg-orange-500/20 text-orange-400 border border-orange-500/30" };
+  if (grade >= 70) return { label: "1st", className: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30" };
+  if (grade >= 60) return { label: "2:1", className: "bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30" };
+  if (grade >= 50) return { label: "2:2", className: "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30" };
+  if (grade >= 40) return { label: "3rd", className: "bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30" };
   return { label: "Fail", className: "bg-destructive/20 text-destructive border border-destructive/30" };
 }
 
@@ -72,16 +72,16 @@ function formatDateTime(dateStr: string | null): string {
 }
 
 const statusStyles: Record<string, string> = {
-  completed: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  "in-progress": "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  upcoming: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  completed: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+  "in-progress": "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+  upcoming: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
 };
 
 const gradeLegend = [
-  { label: "1st (≥70)", className: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
-  { label: "2:1 (60–69)", className: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-  { label: "2:2 (50–59)", className: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
-  { label: "3rd (40–49)", className: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+  { label: "1st (≥70)", className: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" },
+  { label: "2:1 (60–69)", className: "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30" },
+  { label: "2:2 (50–59)", className: "bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30" },
+  { label: "3rd (40–49)", className: "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30" },
   { label: "Fail (<40)", className: "bg-destructive/20 text-destructive border-destructive/30" },
 ];
 
@@ -211,20 +211,20 @@ export function ModuleGradesTable({ onNavigateToModule, externalActiveView }: Mo
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(250 85% 65%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(250 85% 65%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(215 20% 55%)', fontSize: 11 }} />
-                <YAxis domain={[40, 100]} axisLine={false} tickLine={false} tick={{ fill: 'hsl(215 20% 55%)', fontSize: 11 }} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                <YAxis domain={[40, 100]} axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                 <RechartsTooltip
                   contentStyle={{
-                    backgroundColor: 'hsl(230 25% 12%)',
-                    border: '1px solid hsl(230 25% 18%)',
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
                     borderRadius: '8px',
                   }}
                 />
-                <Area type="monotone" dataKey="grade" stroke="hsl(250 85% 65%)" strokeWidth={2} fillOpacity={1} fill="url(#trendGradient)" />
+                <Area type="monotone" dataKey="grade" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#trendGradient)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
